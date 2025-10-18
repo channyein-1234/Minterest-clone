@@ -86,8 +86,7 @@ export default function AIInferencePage() {
     }
 
     setIsLoading(true);
-    setOutput('Generating...');
-    console.log('Starting generation with prompt:', prompt);
+    setOutput('');
 
     try {
       // Create chat messages format
@@ -95,36 +94,32 @@ export default function AIInferencePage() {
         { role: 'user', content: prompt }
       ];
       
-      console.log('Applying chat template...');
-      // Apply chat template
+      // Apply chat template with thinking mode disabled for faster generation
       const inputs = tokenizerRef.current.apply_chat_template(messages, {
         add_generation_prompt: true,
         return_dict: true,
+        enable_thinking: false, // Disable thinking mode for faster responses
       });
       
-      console.log('Creating streamer...');
       // Create streamer for real-time output
       const streamer = new TextStreamer(tokenizerRef.current, {
         skip_prompt: true,
         skip_special_tokens: true,
         callback_function: (text: string) => {
-          console.log('Streamer callback:', text);
           setOutput(prev => prev + text);
         }
       });
       
-      console.log('Starting model.generate...');
-      // Generate response
-      const result = await modelRef.current.generate({
+      // Generate response with optimized settings for speed (non-thinking mode)
+      await modelRef.current.generate({
         ...inputs,
-        max_new_tokens: 256,
+        max_new_tokens: 128,
         do_sample: true,
         temperature: 0.7,
+        top_p: 0.8,
         top_k: 20,
         streamer,
       });
-      
-      console.log('Generation complete!', result);
       
     } catch (error) {
       console.error('Error generating text:', error);
