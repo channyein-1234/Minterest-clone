@@ -54,6 +54,7 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
+  output: 'export', // Static export for deployment
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },
@@ -65,24 +66,6 @@ const nextConfig: NextConfig = {
       'onnxruntime-node$': false,
     };
     return config;
-  },
-  // Add headers for CORS and proper content types
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin',
-          },
-          {
-            key: 'Cross-Origin-Embedder-Policy',
-            value: 'require-corp',
-          },
-        ],
-      },
-    ];
   },
 };
 
