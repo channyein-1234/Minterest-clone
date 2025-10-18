@@ -10,7 +10,10 @@ import { AutoTokenizer, AutoModelForCausalLM, TextStreamer } from '@huggingface/
 import { env } from '@huggingface/transformers';
 env.backends.onnx.logLevel = 'error'; // Suppress warnings, only show errors
 if (typeof window !== 'undefined') {
-  (globalThis as any).ort?.env && ((globalThis as any).ort.env.logLevel = 'error');
+  const ort = (globalThis as unknown as { ort?: { env?: { logLevel?: string } } }).ort;
+  if (ort?.env) {
+    ort.env.logLevel = 'error';
+  }
 }
 
 export default function AIInferencePage() {
@@ -19,7 +22,9 @@ export default function AIInferencePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [modelLoaded, setModelLoaded] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState('');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tokenizerRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const modelRef = useRef<any>(null);
 
   const loadModel = async () => {
@@ -34,6 +39,7 @@ export default function AIInferencePage() {
       // Load tokenizer
       setLoadingProgress('Loading tokenizer...');
       tokenizerRef.current = await AutoTokenizer.from_pretrained(model_id, {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         progress_callback: (progress: any) => {
           if (progress.status === 'downloading') {
             setLoadingProgress(`Downloading tokenizer: ${progress.file}`);
@@ -46,6 +52,7 @@ export default function AIInferencePage() {
       modelRef.current = await AutoModelForCausalLM.from_pretrained(model_id, {
         dtype: 'q4f16',
         device: 'webgpu',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         progress_callback: (progress: any) => {
           if (progress.status === 'downloading') {
             setLoadingProgress(`Downloading: ${progress.file} - ${Math.round(progress.progress || 0)}%`);
