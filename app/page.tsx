@@ -1,95 +1,236 @@
-import Image from "next/image";
-import Link from "next/link";
+'use client';
 
-export default function Home() {
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { addNote, getAllNotes, deleteNote, clearAllNotes } from '@/lib/db';
+
+interface Note {
+  id?: number;
+  title: string;
+  content: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export default function DemoPage() {
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [isOnline, setIsOnline] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadNotes();
+    
+    // Check online status
+    setIsOnline(navigator.onLine);
+    
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const loadNotes = async () => {
+    try {
+      const allNotes = await getAllNotes();
+      setNotes(allNotes);
+    } catch (error) {
+      console.error('Error loading notes:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!title.trim() || !content.trim()) {
+      alert('Please fill in both title and content');
+      return;
+    }
+
+    try {
+      const now = Date.now();
+      await addNote({
+        title,
+        content,
+        createdAt: now,
+        updatedAt: now,
+      });
+      
+      setTitle('');
+      setContent('');
+      await loadNotes();
+    } catch (error) {
+      console.error('Error adding note:', error);
+      alert('Failed to add note');
+    }
+  };
+
+  const handleDeleteNote = async (id: number) => {
+    try {
+      await deleteNote(id);
+      await loadNotes();
+    } catch (error) {
+      console.error('Error deleting note:', error);
+      alert('Failed to delete note');
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (confirm('Are you sure you want to delete all notes?')) {
+      try {
+        await clearAllNotes();
+        await loadNotes();
+      } catch (error) {
+        console.error('Error clearing notes:', error);
+        alert('Failed to clear notes');
+      }
+    }
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <Link
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="/demo"
-          >
-            View PWA Demo
-          </Link>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight">Minterest PWA Demo</h1>
+          <p className="text-muted-foreground">
+            A Progressive Web App with IndexedDB & Offline Support
+          </p>
+          <div className="flex items-center justify-center gap-2">
+            <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`} />
+            <span className="text-sm font-medium">
+              {isOnline ? 'Online' : 'Offline'}
+            </span>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Add Note Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Create New Note</CardTitle>
+            <CardDescription>
+              Your notes are stored locally in IndexedDB and work offline
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="title" className="text-sm font-medium">
+                Title
+              </label>
+              <Input
+                id="title"
+                placeholder="Enter note title..."
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="content" className="text-sm font-medium">
+                Content
+              </label>
+              <Input
+                id="content"
+                placeholder="Enter note content..."
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+              />
+            </div>
+          </CardContent>
+          <CardFooter className="flex gap-2">
+            <Button onClick={handleAddNote} className="flex-1">
+              Add Note
+            </Button>
+            {notes.length > 0 && (
+              <Button onClick={handleClearAll} variant="destructive">
+                Clear All
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+
+        {/* Notes List */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold">
+            Your Notes ({notes.length})
+          </h2>
+          
+          {isLoading ? (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                Loading notes...
+              </CardContent>
+            </Card>
+          ) : notes.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                No notes yet. Create your first note above!
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {notes.map((note) => (
+                <Card key={note.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="text-lg">{note.title}</CardTitle>
+                    <CardDescription>
+                      {new Date(note.createdAt).toLocaleString()}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm">{note.content}</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button
+                      onClick={() => note.id && handleDeleteNote(note.id)}
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                    >
+                      Delete
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* PWA Info */}
+        <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+          <CardHeader>
+            <CardTitle className="text-blue-900 dark:text-blue-100">
+              PWA Features
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+            <div className="flex items-start gap-2">
+              <span className="font-semibold">✓</span>
+              <span>Works offline - Try disabling your network connection</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="font-semibold">✓</span>
+              <span>Installable - Add to home screen on mobile or desktop</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="font-semibold">✓</span>
+              <span>IndexedDB storage - Data persists across sessions</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="font-semibold">✓</span>
+              <span>Shadcn/ui components - Beautiful, accessible UI</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
