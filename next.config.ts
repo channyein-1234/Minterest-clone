@@ -14,6 +14,15 @@ const withPWA = withPWAInit({
     mode: "production",
     // Add importScripts to include helper
     importScripts: ["/sw-helper.js"],
+    // Exclude Netlify config files from precaching
+    manifestTransforms: [
+      (manifestEntries) => {
+        const manifest = manifestEntries.filter(
+          (entry) => !entry.url.match(/^\/_headers$|^\/_redirects$/)
+        );
+        return { manifest };
+      },
+    ],
     runtimeCaching: [
       {
         urlPattern: /^https?:\/\/.*/i,

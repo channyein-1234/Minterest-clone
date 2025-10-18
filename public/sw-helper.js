@@ -107,3 +107,34 @@ function _ts_awaiter(thisArg, _arguments, P, generator) {
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
 }
+
+// Custom cache handler for Hugging Face model files
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  
+  // Cache Hugging Face CDN requests (models, tokenizers, etc.)
+  if (url.hostname === 'huggingface.co' || url.hostname === 'cdn-lfs.huggingface.co') {
+    event.respondWith(
+      caches.open('transformers-cache').then((cache) => {
+        return cache.match(event.request).then((response) => {
+          if (response) {
+            // Return cached response
+            return response;
+          }
+          
+          // Fetch and cache the response
+          return fetch(event.request).then((response) => {
+            // Only cache successful responses
+            if (response.status === 200) {
+              cache.put(event.request, response.clone());
+            }
+            return response;
+          }).catch(() => {
+            // Return offline fallback if available
+            return cache.match(event.request);
+          });
+        });
+      })
+    );
+  }
+});
