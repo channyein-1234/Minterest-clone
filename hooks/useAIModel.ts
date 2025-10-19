@@ -255,10 +255,10 @@ export function useAIModel() {
 
     const {
       systemPrompt = 'You are a helpful AI assistant.',
-      maxTokens = 256,
+      maxTokens = 100,
       temperature = 0.7,
-      topP = 0.8,
-      topK = 20,
+      topP = 0.9,
+      topK = 10,
       stream = false,
       onToken,
     } = options;
@@ -297,6 +297,7 @@ export function useAIModel() {
           temperature,
           top_p: topP,
           top_k: topK,
+          repetition_penalty: 1.1,
           streamer,
         });
       } else {
@@ -308,6 +309,7 @@ export function useAIModel() {
           temperature,
           top_p: topP,
           top_k: topK,
+          repetition_penalty: 1.1,
         });
 
         // First decode with special tokens to see the structure

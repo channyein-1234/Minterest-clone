@@ -5,8 +5,7 @@ import { useState } from 'react';
 
 export interface PinData {
   id: string;
-  title: string;
-  description: string;
+  idea: string;
   category: string;
   color: string;
 }
@@ -34,15 +33,12 @@ export function PinterestCard({ pin, onClick }: PinterestCardProps) {
         }}
       >
         <div className="h-full w-full flex items-center justify-center p-6">
-          <h3 className="text-white text-xl font-bold text-center drop-shadow-lg">
-            {pin.title}
-          </h3>
+          <p className="text-white text-base font-medium text-center drop-shadow-lg leading-relaxed">
+            {pin.idea}
+          </p>
         </div>
       </div>
       <CardContent className="p-4">
-        <p className="text-sm text-muted-foreground line-clamp-3">
-          {pin.description}
-        </p>
         <div className="mt-2">
           <span className="text-xs font-medium px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-full">
             {pin.category}

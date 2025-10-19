@@ -27,7 +27,7 @@ export function PinDetailModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">{pin.title}</DialogTitle>
+          <DialogTitle className="text-2xl">Idea Details</DialogTitle>
           <DialogDescription>
             <span className="inline-block px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium">
               {pin.category}
@@ -36,20 +36,14 @@ export function PinDetailModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Color Banner */}
+          {/* Color Banner with Idea */}
           <div
-            className="h-32 w-full rounded-lg flex items-center justify-center"
+            className="min-h-32 w-full rounded-lg flex items-center justify-center p-6"
             style={{ backgroundColor: pin.color }}
           >
-            <h3 className="text-white text-3xl font-bold drop-shadow-lg">
-              {pin.title}
-            </h3>
-          </div>
-
-          {/* Description */}
-          <div>
-            <h4 className="font-semibold mb-2">Description</h4>
-            <p className="text-sm text-muted-foreground">{pin.description}</p>
+            <p className="text-white text-xl font-medium text-center drop-shadow-lg leading-relaxed">
+              {pin.idea}
+            </p>
           </div>
 
           {/* Related Ideas Section */}
@@ -75,15 +69,12 @@ export function PinDetailModal({
                       className="h-24 w-full flex items-center justify-center p-3"
                       style={{ backgroundColor: relatedPin.color }}
                     >
-                      <h5 className="text-white text-sm font-bold text-center drop-shadow-lg line-clamp-2">
-                        {relatedPin.title}
-                      </h5>
+                      <p className="text-white text-xs font-medium text-center drop-shadow-lg line-clamp-3">
+                        {relatedPin.idea}
+                      </p>
                     </div>
                     <div className="p-3">
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {relatedPin.description}
-                      </p>
-                      <div className="mt-2">
+                      <div>
                         <span className="text-xs font-medium px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-full">
                           {relatedPin.category}
                         </span>

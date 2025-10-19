@@ -36,34 +36,33 @@ export default function PinterestAIPage() {
     setGeneratingCount(0);
     
     try {
-      // Generate 6 pins one by one and render immediately
+      const systemPrompt = `You are a knowledgeable assistant that provides interesting facts and ideas about "${searchQuery}". Share fascinating, unique, or thought-provoking information.`;
+      const prompt = `Share one interesting fact, idea, or insight about "${searchQuery}". Keep it to 1-2 sentences. Be specific and intriguing. End with a one-word category.`;
+      
+      // Generate 6 pins one by one and render each immediately for real-time feedback
       for (let i = 0; i < 6; i++) {
         setGeneratingCount(i + 1);
         
-        const systemPrompt = `You are a creative content generator for "${searchQuery}". Generate diverse and interesting content ideas about this topic.`;
-        const prompt = `Generate a single creative idea. Provide: a short catchy title (max 6 words), a brief description (1-2 sentences), and a one-word category. Be concise and creative.`;
-        
         const response = await generate(prompt, {
           systemPrompt,
-          maxTokens: 80,
+          maxTokens: 60,
           temperature: 0.9,
         });
         
-        // Extract title, description, and category from response
+        // Extract idea and category from response
         const lines = response.trim().split('\n').filter(line => line.trim());
-        const title = lines[0]?.replace(/^(Title:|Idea:|-)?\s*/i, '').trim() || `Idea ${i + 1}`;
-        const description = lines.slice(1, -1).join(' ').replace(/^(Description:|-)?\s*/i, '').trim() || response.substring(0, 100);
-        const category = lines[lines.length - 1]?.replace(/^(Category:|-)?\s*/i, '').trim().split(' ')[0] || 'General';
+        const lastLine = lines[lines.length - 1] || '';
+        const category = lastLine.replace(/^(Category:|-)?\s*/i, '').trim().split(' ')[0] || 'General';
+        const idea = lines.slice(0, -1).join(' ').replace(/^(Idea:|Fact:|-)?\s*/i, '').trim() || response.substring(0, 120);
         
         const pin: PinData = {
           id: `${Date.now()}-${i}-${Math.random()}`,
-          title: title.substring(0, 50),
-          description: description.substring(0, 150),
+          idea: idea.substring(0, 150),
           category: category.substring(0, 20),
           color: colors[i % colors.length],
         };
         
-        // Immediately render each pin as it's generated
+        // Immediately render each pin as it's generated (real-time streaming effect)
         setPins(prevPins => [...prevPins, pin]);
       }
     } catch (err) {
@@ -80,32 +79,31 @@ export default function PinterestAIPage() {
     setRelatedPins([]);
     
     try {
-      const topicContext = searchQuery.trim() || pin.category || pin.title;
-      const relatedCount = 6;
+      const topicContext = searchQuery.trim() || pin.category || 'this topic';
+      const systemPrompt = `You are a knowledgeable assistant that provides interesting facts and ideas about "${topicContext}". Share fascinating, unique, or thought-provoking information.`;
+      const prompt = `Share one interesting fact or idea related to "${pin.idea}". Keep it to 1-2 sentences. Be specific and intriguing. End with a one-word category.`;
       
-      for (let i = 0; i < relatedCount; i++) {
-        const systemPrompt = `You are a creative content generator for "${topicContext}". Generate diverse and interesting content ideas related to this topic.`;
-        const prompt = `Generate a single creative idea inspired by and related to "${pin.title}". Provide: a short catchy title (max 6 words), a brief description (1-2 sentences), and a one-word category. Be concise and creative.`;
-
+      // Generate 6 related pins one by one and render each immediately
+      for (let i = 0; i < 6; i++) {
         const response = await generate(prompt, {
           systemPrompt,
-          maxTokens: 80,
+          maxTokens: 60,
           temperature: 0.9,
         });
 
         const lines = response.trim().split('\n').filter(line => line.trim());
-        const title = lines[0]?.replace(/^(Title:|Idea:|-)?\s*/i, '').trim() || `Related Idea ${i + 1}`;
-        const description = lines.slice(1, -1).join(' ').replace(/^(Description:|-)?\s*/i, '').trim() || response.substring(0, 100);
-        const category = lines[lines.length - 1]?.replace(/^(Category:|-)?\s*/i, '').trim().split(' ')[0] || pin.category || 'General';
+        const lastLine = lines[lines.length - 1] || '';
+        const category = lastLine.replace(/^(Category:|-)?\s*/i, '').trim().split(' ')[0] || pin.category || 'General';
+        const idea = lines.slice(0, -1).join(' ').replace(/^(Idea:|Fact:|-)?\s*/i, '').trim() || response.substring(0, 120);
 
         const newPin: PinData = {
           id: `${Date.now()}-${i}-${Math.random()}`,
-          title: title.substring(0, 50),
-          description: description.substring(0, 150),
+          idea: idea.substring(0, 150),
           category: category.substring(0, 20),
           color: colors[i % colors.length],
         };
-
+        
+        // Immediately render each related pin as it's generated
         setRelatedPins(prevPins => [...prevPins, newPin]);
       }
     } catch (err) {
@@ -134,7 +132,7 @@ export default function PinterestAIPage() {
             </h1>
           </div>
           <p className="text-lg text-muted-foreground">
-            AI-Powered Content Discovery - Search anything and let AI generate creative ideas
+            AI-Powered Idea Discovery - Search anything and discover interesting facts and ideas
           </p>
           
           {/* Model Status */}
@@ -202,7 +200,7 @@ export default function PinterestAIPage() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                   <Input
-                    placeholder="Search for ideas... (e.g., 'space exploration', 'healthy recipes', 'AI art')"
+                    placeholder="Discover ideas... (e.g., 'quantum physics', 'ancient civilizations', 'ocean life')"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
@@ -252,9 +250,9 @@ export default function PinterestAIPage() {
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
               <Search className="w-16 h-16 text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Start Exploring</h3>
+              <h3 className="text-xl font-semibold mb-2">Start Discovering</h3>
               <p className="text-muted-foreground max-w-md">
-                Search for any topic and let AI generate creative content ideas for you. No data is cached - every search generates fresh content!
+                Search for any topic and discover interesting facts and ideas. Every search generates fresh, unique insights!
               </p>
             </CardContent>
           </Card>
@@ -271,11 +269,11 @@ export default function PinterestAIPage() {
             <CardContent className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
               <div className="flex items-start gap-2">
                 <span className="font-semibold">🔍</span>
-                <span>Search for any topic and AI generates 6 creative content ideas</span>
+                <span>Search for any topic and AI generates 6 interesting facts or ideas</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="font-semibold">🎨</span>
-                <span>Click any card to see related ideas in an expanded view</span>
+                <span className="font-semibold">💡</span>
+                <span>Click any card to explore related ideas and discover more</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-semibold">🚀</span>
@@ -287,7 +285,7 @@ export default function PinterestAIPage() {
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-semibold">✨</span>
-                <span>Fresh content every time - nothing is cached or stored</span>
+                <span>Fresh ideas every time - nothing is cached or stored</span>
               </div>
             </CardContent>
           </Card>
