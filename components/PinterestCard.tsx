@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { useState } from 'react';
-
+import { speakText } from '@/lib/utils';
 export interface PinData {
   id: string;
   idea: string;
@@ -17,6 +17,7 @@ interface PinterestCardProps {
 
 export function PinterestCard({ pin, onClick }: PinterestCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+
 
   return (
     <Card
@@ -38,12 +39,23 @@ export function PinterestCard({ pin, onClick }: PinterestCardProps) {
           </p>
         </div>
       </div>
-      <CardContent className="p-4">
-        <div className="mt-2">
-          <span className="text-xs font-medium px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-full">
-            {pin.category}
-          </span>
-        </div>
+      <CardContent className="p-4 flex flex-col items-start gap-2">
+        {/* Category label */}
+        <span className="text-xs font-medium px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-full">
+          {pin.category}
+        </span>
+
+        {/* Read Aloud button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation(); // prevent triggering the card click
+            speakText(pin.idea);
+          }}
+          className="text-sm px-2 py-1 bg-blue-200 hover:bg-blue-300 rounded-md"
+          title="Read aloud"
+        >
+          🔊 Read Aloud
+        </button>
       </CardContent>
     </Card>
   );
